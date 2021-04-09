@@ -7,12 +7,7 @@ module.exports = {
     disableHostCheck: true,
     proxy: {
       // 保存用户信息
-      '^/wx|^/file|^/~|^/public|^/dr|^/newstatic': {
-        target: host,
-        ws: true,
-        changeOrigin: true,
-      },
-      '/wx/menu/list': {
+      '^/wx|^/users|^/~|^/public|^/dr|^/newstatic': {
         target: host,
         ws: true,
         changeOrigin: true,

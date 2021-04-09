@@ -1,79 +1,122 @@
 <template>
     <div class="container">
         <div class="title">登录</div>
-      <form bindSubmit="submitLogin">
-        用户名：<input type="text" name="username" v-model="userName" id="username"/>
-        <br/>
-        密 码：<input type="password" name="password" v-model="passWord" id="password"/>
-        <br/>
-        验证码：<input type="text" name="code" v-model="code" id="code"/>
-        <br/>
-<!--        <input type="text" name="remenberMe" id="remenberMe" value="1"/>-->
-        <!--        <input type="submit" value="login" />-->
-        <img @click="getCode" src="/public/verification/getCode" width="130px" height="48px"/>
-        <button type="button" form-type="submit">登录</button>
-        <input name="remember-me" type="checkbox" id="remember-me" value="true"/>记住我<br/>
-      </form>
-      <a href="/register.html">去注册</a>
+        <form>
+            <div class="row">
+                <span>用户名：</span>
+                <input type="text" v-model="formMess.username">
+            </div>
+            <div class="row">
+                <span>密码：</span>
+                <input type="password" v-model="formMess.password">
+            </div>
+            <div class="row">
+                <div class="group">
+                    <span>验证码：</span>
+                    <input type="text" v-model="formMess.code" style="width:30%;">
+                </div>
+                <img @click="clickImg" :src="imgUrl">
+            </div>
+            <div class="rember">
+                <input type="checkbox" v-model="formMess.rememberMe" value="remember-me"> 记住我
+            </div>
+            <button type="button" @click="loginTap">登录</button>
+        </form>
     </div>
 </template>
 
 <script>
     export default {
         name: "login",
-        data:function() {
-          return {
-            userName:'',
-            passWord:'',
-            code:''
-          }
+        data(){
+            return{
+                imgUrl:'',
+                formMess:{
+                    'username':'',
+                    'password':'',
+                    'code':'',
+                    'type':'JSON',
+                    'rememberMe':false
+                }
+            }
+        },
+        created() {
+            this.imgUrl = '/public/verification/getCode';
         },
         methods:{
-          // 点击获取验证码
-          getCode:function (){
-            // const src = $(this).attr("src");
-            // $(this).attr("src", src + "?t=" + new Date().getTime())
-          },
-          // 点击登录按钮
-          submitLogin:function (e) {
-            // eslint-disable-next-line no-debugger
-            debugger
-            console.log(e)
-          }
+            //    获取验证码
+            getCode(){
+                let num=Math.ceil(Math.random()*10);//生成一个随机数（防止缓存）
+                this.imgUrl = "/public/verification/getCode?" + num;
+            },
+            //   点击获取验证码
+            clickImg(){
+                this.getCode();
+            },
+            //  点击登录
+            loginTap(){
+                let formData = new FormData();
+                for(var key in this.formMess){
+                    formData.append(key,this.formMess[key]);
+                }
+
+                this.axios({
+                    url:'/users/weblogin',
+                    method:'post',
+                    data:formData,
+                    headers: {
+                        "Content-Type": "multipart/form-data"
+                    },
+                }).then(function (e) {
+                    if (e.data.code === "00000") {
+                        localStorage.setItem("access_token", e.data.data.token);
+                        // location.href = e.data.data.targetUrl;
+                    } else {
+                        alert(e.data.msg);
+                        // ODO 下面的代码不正确，需要在这个地方刷新验证码
+                        this.getCode();
+                    }
+                })
+            }
         }
-      // var data = {}
-      // data.username = $("#username").val();
-      // data.password = $("#password").val();
-      // data.code = $("#code").val();
-      // data.remenberMe = $("#remenberMe").val();
-      // data["remember-me"] = $("#remember-me").val();
-      // data.type = "JSON";
-      // $.ajax({
-      //   type: "POST",
-      //   url: "/users/weblogin",
-      //   data: data,
-      //   success: function (e) {
-      //     console.log(e)
-      //     if (e.code === "00000") {
-      //       localStorage.setItem("access_token", e.data.token);
-      //       // $("searchResult").html(data.msg);
-      //       location.href = e.data.targetUrl;
-      //       // location.href="index.html";
-      //     } else {
-      //       alert(e.msg);
-      //       ODO 下面的代码不正确，需要在这个地方刷新验证码
-      //       $("#verImg").click(function updateImgCode() {
-      //         const src = $(this).attr("src");
-      //         $(this).attr("src", src + "?t=" + new Date().getTime());
-      //       })
-      //     }
-      //   },
-      // });
-    // });
-        // }
     }
 </script>
 
 <style scoped>
+    .title{
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    form .row{
+        position: relative;
+        margin-bottom: 10px;
+    }
+    form .row span{
+        width:25%;
+        display: inline-block;
+        text-align: right;
+    }
+    form .row input{
+        height: 24px;
+        line-height: 24px;
+    }
+    form .row img{
+        position: absolute;
+        right: 19%;
+        top: 0;
+        width:70px;
+        height:36px;
+    }
+    form button{
+        display: block;
+        width: 30%;
+        height: 30px;
+        line-height: 30px;
+        margin:50px auto 0;
+        background-color: cornflowerblue;
+        border:none;
+        color: #ffffff;
+        border-radius: 6px;
 
+    }
 </style>
